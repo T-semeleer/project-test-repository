@@ -12,3 +12,8 @@ This is just a test file that we can start creating the bot and for me to make s
 '''
 
 pie = 5
+
+def testing_push():
+    '''
+    This function basically jsut teswt push'''
+    return True
