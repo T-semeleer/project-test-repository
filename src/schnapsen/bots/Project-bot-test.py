@@ -17,3 +17,7 @@ def testing_push():
     '''
     This function basically jsut teswt push'''
     return True
+
+def testfunc():
+    print ('This is a test')
+    
