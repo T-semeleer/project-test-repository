@@ -11,7 +11,6 @@ import pathlib
 # git config pull.rebase false
 
 class project_test_bot(Bot):
-
     pass
 class ASSOS():
     pass
