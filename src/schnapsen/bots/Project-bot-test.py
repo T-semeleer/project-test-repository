@@ -7,6 +7,8 @@ import joblib
 import time
 import pathlib
 
+
+# git config pull.rebase false
 '''
 This is just a test file that we can start creating the bot and for me to make sure it syncs in the github
 '''
