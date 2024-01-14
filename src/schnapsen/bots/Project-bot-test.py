@@ -13,3 +13,5 @@ import pathlib
 class project_test_bot(Bot):
 
     pass
+class ASSOS():
+    pass
