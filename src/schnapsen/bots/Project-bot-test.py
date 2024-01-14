@@ -27,3 +27,6 @@ def testfunc():
 akfj;sjfal;sjkfasl;fjaskl;f
 af;a;dfjal;kfjasklf
 '''
+
+def thing():
+    print('hey')
