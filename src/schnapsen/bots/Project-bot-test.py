@@ -12,3 +12,6 @@ This is just a test file that we can start creating the bot and for me to make s
 '''
 
 pie = 5
+
+def testfunc():
+    print ('This is a test')
