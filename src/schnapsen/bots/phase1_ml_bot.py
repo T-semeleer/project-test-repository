@@ -36,6 +36,7 @@ class Agent:
         self.memory = [] # Replay memory
         self.gamma = 0.95 # Discount rate for future rewards
         self.optimizer = tf.keras.optimizers.Adam(learning_rate=0.001)
+    
     def encode_suits(self, card_suit: Card) -> list[int]:
         card_suit_one_hot: list[int]
         if card_suit == Suit.HEARTS:
@@ -49,6 +50,7 @@ class Agent:
         else:
             raise ValueError("Suit of card was not found!")
         return card_suit_one_hot
+    
     def encode_ranks(self, card_rank):
         card_rank_one_hot: list[int]
         if card_rank == Rank.ACE:
@@ -80,6 +82,7 @@ class Agent:
         else:
             raise AssertionError("Provided card Rank does not exist!")
         return card_rank_one_hot
+    
     def get_feature_vector(self, move: Move) -> list[int]:
         if move is None:
             move_type_arr_numpy = [0, 0, 0]
@@ -100,9 +103,11 @@ class Agent:
         suit_encoding_arr_numpy = self.encode_suits(card.suit)
 
         return np.array(move_type_arr_numpy + rank_encoding_arr_numpy + suit_encoding_arr_numpy)
+    
     def memorize(self, state: np.ndarray, action: int, reward: float, next_state: np.ndarray, done: bool) -> None:
         """Store past experiences in the replay memory."""
         self.memory.append((state, action, reward, next_state, done))
+    
     def act(self, state: np.ndarray) -> int:
         """Selects an action to play based on the current state using the epsilon-greedy policy"""
         if np.random.rand() <= self.epsilon:
@@ -110,6 +115,7 @@ class Agent:
         state = np.reshape(state, [1, -1]) # Reshape state for the neural network
         act_values = self.model(state)
         return np.argmax(act_values[0]) # Exploit: select the action with the highest Q-value
+    
     def replay(self, batch_size: int):
         """Trains the model using a batch of experiences from the replay memory."""
         minibatch = random.sample(self.memory, batch_size)
