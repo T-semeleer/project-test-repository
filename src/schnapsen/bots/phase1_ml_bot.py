@@ -47,9 +47,7 @@ class Agent(PlayerPerspective):
         act_values = self.model(state)
         return np.argmax(act_values[0]) # Exploit: select the action with the highest Q-value
     def replay(self, batch_size: int):
-        """
-        Trains the model using a batch of experiences from the replay memory.
-        """
+        """Trains the model using a batch of experiences from the replay memory."""
         minibatch = random.sample(self.memory, batch_size)
         for state, action, reward, next_state, done in minibatch:
             target = reward
@@ -60,6 +58,6 @@ class Agent(PlayerPerspective):
             target_f = self.model(state)
             target_f[0][action] = target
             self.model.train_on_batch(state, target_f)
-            
+
         if self.epsilon > self.epsilon_min:
             self.epsilon *= self.epsilon_decay  # Decrease epsilon
