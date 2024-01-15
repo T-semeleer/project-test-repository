@@ -1,5 +1,6 @@
 from random import Random
-from schnapsen.game import Bot, BotState, GamePlayEngine, GameState, Hand, PlayerPerspective, SchnapsenDeckGenerator, Move, Score, Trick, GamePhase, RegularMove
+from schnapsen.game import Bot, BotState, GamePlayEngine, GameState, Hand, PlayerPerspective, SchnapsenDeckGenerator, Move, Score, Trick, GamePhase, RegularMove, SchnapsenGamePlayEngine
+from schnapsen.bots import RdeepBot
 from typing import Optional, cast, Literal
 from schnapsen.deck import CardCollection, Suit, Rank, Card
 from sklearn.neural_network import MLPClassifier
@@ -11,6 +12,7 @@ import random
 import numpy as np
 import tensorflow as tf
 from tensorflow.python.keras import layers
+from tensorflow.python.keras.models import load_model
 
 class DQN(tf.keras.Model):
     """Deep Q-Network, a neural network model for estimating Q-values of actions."""
@@ -38,6 +40,7 @@ class Agent:
         self.optimizer = tf.keras.optimizers.Adam(learning_rate=0.001)
     
     def encode_suits(self, card_suit: Card) -> list[int]:
+        """One-hot encodes the value of the suits"""
         card_suit_one_hot: list[int]
         if card_suit == Suit.HEARTS:
             card_suit_one_hot = [0, 0, 0, 1]
@@ -52,6 +55,7 @@ class Agent:
         return card_suit_one_hot
     
     def encode_ranks(self, card_rank):
+        """One-hot encodes the ranks of each of the cards"""
         card_rank_one_hot: list[int]
         if card_rank == Rank.ACE:
             card_rank_one_hot = [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1]
@@ -84,6 +88,7 @@ class Agent:
         return card_rank_one_hot
     
     def get_feature_vector(self, move: Move) -> list[int]:
+        """Returns the full one-hot encoded value of the move"""
         if move is None:
             move_type_arr_numpy = [0, 0, 0]
             rank_encoding_arr_numpy = [0, 0, 0, 0]
@@ -109,29 +114,32 @@ class Agent:
         self.memory.append((state, action, reward, next_state, done))
     
     def act(self, state: np.ndarray) -> int:
-        """Selects an action to play based on the current state using the epsilon-greedy policy"""
+        """Returns the action to be taken given the current state"""
         if np.random.rand() <= self.epsilon:
             return random.randrange(self.model.output_layer.units) # Explore: select a random action
-        state = np.reshape(state, [1, -1]) # Reshape state for the neural network
-        act_values = self.model(state)
+        act_values = self.model.predict(state)
         return np.argmax(act_values[0]) # Exploit: select the action with the highest Q-value
     
     def replay(self, batch_size: int):
         """Trains the model using a batch of experiences from the replay memory."""
+        if len(self.memory) < batch_size:
+            return
         minibatch = random.sample(self.memory, batch_size)
         for state, action, reward, next_state, done in minibatch:
             target = reward
             if not done:
-                next_state = np.reshape(next_state, [1, -1])
-                target = reward + self.gamma * np.amax(self.model(next_state)[0])
-            state = np.reshape(state, [1, -1])
-            target_f = self.model(state)
+                target = reward + self.gamma * np.amax(self.model.predict(next_state)[0])
+            target_f = self.model.predict(state)
             target_f[0][action] = target
-            self.model.train_on_batch(state, target_f)
-
+            self.model.fit(state, target_f, epochs=1, verbose=0)
+    def update_epsilon(self):
+        """Updates the exploration rate"""
         if self.epsilon > self.epsilon_min:
-            self.epsilon *= self.epsilon_decay  # Decrease epsilon
-
-agent = Agent(5)
-move = RegularMove(Card.KING_DIAMONDS)
-print (agent.get_feature_vector(move))
+            self.epsilon *= self.epsilon_decay
+    def save_model(self):
+        """Saves the model"""
+        self.model.save('src/schnapsen/bots')
+    def load_model(self):
+        """Loads model from stored location"""
+        model = load_model('src/schnapsen/bots')
+        return model
