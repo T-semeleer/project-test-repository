@@ -11,10 +11,9 @@ from tensorflow.python.keras import layers
 import numpy as np
 
 class DQN(tf.keras.Model):
-    
     def __init__(self, action_size: int):
         """Deep Q-Network, a neural network model for estimating Q-values of actions."""
-        super(DQN, self).__init__()
+        super(DQN, self).__init__() # Calling the constructor of the tf.keras.Model class
         self.dense1 = layers.Dense(128, activation='relu')
         self.dense2 = layers.Dense(128, activation='relu')
         self.output_layer = layers.Dense(action_size, activation='linear')
