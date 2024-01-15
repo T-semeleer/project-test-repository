@@ -6,7 +6,6 @@ from sklearn.linear_model import LogisticRegression
 import joblib
 import time
 import pathlib
-#import tensorflow as tf
 
 
 # git config pull.rebase false
