@@ -8,24 +8,10 @@ import time
 import pathlib
 import tensorflow as tf
 
-'''
-This is just a test file that we can start creating the bot and for me to make sure it syncs in the github
-'''
 
-pie = 5
+# git config pull.rebase false
 
-def testing_push():
-    '''
-    This function basically jsut teswt push'''
-    return True
-
-def testfunc():
-    print ('This is a test')
-
-print ('another change')
-
-
-'''
-akfj;sjfal;sjkfasl;fjaskl;f
-af;a;dfjal;kfjasklf
-'''
+class project_test_bot(Bot):
+    pass
+class ASSOS():
+    pass
