@@ -6,6 +6,7 @@ from sklearn.linear_model import LogisticRegression
 import joblib
 import time
 import pathlib
+import tensorflow as tf
 
 '''
 This is just a test file that we can start creating the bot and for me to make sure it syncs in the github
