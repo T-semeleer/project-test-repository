@@ -1,5 +1,5 @@
 from schnapsen.game import Card, RegularMove, Suit, Rank, Move, Marriage
-from phase1_ml_bot import Agent
+from schnapsen.bots.dqn_bot import Agent
 import numpy as np
 from typing import Optional
 

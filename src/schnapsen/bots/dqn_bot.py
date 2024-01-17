@@ -1,5 +1,5 @@
 from random import Random
-from schnapsen.game import Bot, BotState, GamePlayEngine, GameState, Hand, PlayerPerspective, SchnapsenDeckGenerator, Move, Score, Trick, GamePhase, RegularMove, SchnapsenGamePlayEngine
+from schnapsen.game import Bot, BotState, GamePlayEngine, GameState, Hand, PlayerPerspective, SchnapsenDeckGenerator, Move, Score, Trick, GamePhase, RegularMove, SchnapsenGamePlayEngine, Marriage
 from schnapsen.bots import RdeepBot
 from typing import Optional, cast, Literal
 from schnapsen.deck import CardCollection, Suit, Rank, Card
@@ -11,8 +11,8 @@ import pathlib
 import random
 import numpy as np
 import tensorflow as tf
-from tensorflow.python.keras import layers
-from tensorflow.python.keras.models import load_model
+from tensorflow.python.keras import layers, models
+from tensorflow.python.keras.models import load_model, Sequential
 
 class DQN(tf.keras.Model):
     """Deep Q-Network, a neural network model for estimating Q-values of actions."""
@@ -143,3 +143,4 @@ class Agent:
         """Loads model from stored location"""
         model = load_model('src/schnapsen/bots')
         return model
+
