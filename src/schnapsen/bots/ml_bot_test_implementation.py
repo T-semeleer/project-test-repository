@@ -1,9 +1,7 @@
-from schnapsen.game import SchnapsenGamePlayEngine, Move, RegularMove, Marriage, Bot, PlayerPerspective
+from schnapsen.game import SchnapsenGamePlayEngine, Move, RegularMove, Marriage, Bot, PlayerPerspective, SchnapsenDeckGenerator, GamePhase
 from schnapsen.bots import RandBot, RdeepBot
 from ml_bot import MLDataBot
 import tensorflow as tf
-import keras
-from keras import layers, models
 from keras.models import Sequential, load_model
 from keras.layers import Dense, Dropout, Input
 import numpy as np
@@ -19,7 +17,7 @@ class TrainBot:
     def __init__(self):
         # Initialize the neural network
         self.model = Sequential([
-            Input(shape=(20,)),  # Specify the input shape here
+            Input(shape=(120,)),  # I think the input shape should be 120, because of the size of the feature vector
             Dense(128, activation='relu'),
             Dropout(0.5),
             Dense(128, activation='relu'),
@@ -436,4 +434,4 @@ def get_state_feature_vector(perspective: PlayerPerspective) -> list[int]:
 
 #print (tf.__version__)
 nn_bot = TrainBot()
-nn_bot.train("random_random_10k_games.txt")
+#nn_bot.train("random_random_10k_games.txt")
