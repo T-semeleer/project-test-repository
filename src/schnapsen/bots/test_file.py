@@ -1,7 +1,7 @@
 from schnapsen.game import Card, RegularMove, Suit, Rank, Move, Marriage
-from schnapsen.bots.dqn_bot import Agent
 import numpy as np
 from typing import Optional
+import pathlib
 
 def get_one_hot_encoding_of_card_suit(card_suit: Suit) -> list[int]:
     """
@@ -90,7 +90,7 @@ def get_move_feature_vector(move: Optional[Move]) -> list[int]:
         card_suit_one_hot_encoding_numpy_array = get_one_hot_encoding_of_card_suit(card.suit)
 
     return np.array(move_type_one_hot_encoding_numpy_array + card_rank_one_hot_encoding_numpy_array + card_suit_one_hot_encoding_numpy_array)
-
+"""
 move1 = RegularMove(Card.KING_CLUBS)
 move2 = RegularMove(Card.ACE_SPADES)
 agent = Agent(5)
@@ -101,3 +101,8 @@ print (sample_encoding)
 print (test_encoding)
 
 print (get_move_feature_vector(move1) == agent.get_feature_vector(move2))
+"""
+model_name: str = "tf_sequential_model"
+model_dir: str = "src/schnapsen/bots/ML_models"
+model_location = pathlib.Path(model_dir) / model_name
+print (str(model_location)+'.txt')

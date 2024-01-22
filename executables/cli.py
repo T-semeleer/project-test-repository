@@ -6,7 +6,7 @@ from typing import Optional
 import click
 from schnapsen.alternative_engines.ace_one_engine import AceOneGamePlayEngine
 
-from schnapsen.bots import MLDataBot, train_ML_model, MLPlayingBot, RandBot
+from schnapsen.bots import MLDataBot, train_ML_model, MLPlayingBot, RandBot, PlayBot
 
 from schnapsen.bots.example_bot import ExampleBot
 
@@ -177,7 +177,9 @@ def try_bot_game() -> None:
     model_dir: str = 'ML_models'
     model_name: str = 'simple_model'
     model_location = pathlib.Path(model_dir) / model_name
-    bot1: Bot = MLPlayingBot(model_location=model_location)
+    #bot1: Bot = MLPlayingBot(model_location=model_location)
+    #bot1: Bot = RdeepBot(num_samples=16, depth=4, rand=random.Random())
+    bot1 = PlayBot('src/schnapsen/bots/ML_models/tf_sequential_model_10k.keras')
     bot2: Bot = RandBot(random.Random(464566))
     number_of_games: int = 10000
 
