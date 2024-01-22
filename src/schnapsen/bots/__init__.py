@@ -1,7 +1,7 @@
 """Create a bot in a separate .py and import them here, so that one can simply import
 it by from schnapsen.bots import MyBot.
 """
-from schnapsen.bots.ml_bot_test_implementation import PlayBot
+from .ml_bot_test_implementation import PlayBot
 from .rand import RandBot
 from .alphabeta import AlphaBetaBot
 from .rdeep import RdeepBot

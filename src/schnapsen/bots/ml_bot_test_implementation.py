@@ -1,7 +1,7 @@
-from schnapsen.game import SchnapsenGamePlayEngine, Move, RegularMove, Marriage, Bot, PlayerPerspective, SchnapsenDeckGenerator, GamePhase
-from schnapsen.bots import RandBot, RdeepBot
-from ml_bot import MLDataBot
+from schnapsen.game import SchnapsenGamePlayEngine, Move, RegularMove, Marriage, Bot, PlayerPerspective, SchnapsenDeckGenerator, GamePhase, GamePlayEngine
+from ml_bot import MLDataBot, MLPlayingBot
 import tensorflow as tf
+from schnapsen.bots import RandBot
 from keras.models import Sequential, load_model
 from keras.layers import Dense, Dropout, Input
 import numpy as np
@@ -17,7 +17,7 @@ class TrainBot:
     def __init__(self):
         # Initialize the neural network
         self.model = Sequential([
-            Input(shape=(120,)),  # I think the input shape should be 120, because of the size of the feature vector
+            Input(shape=(173,)),  # I think the input shape should be 120, because of the size of the feature vector
             Dense(128, activation='relu'),
             Dropout(0.5),
             Dense(128, activation='relu'),
@@ -94,7 +94,7 @@ class TrainBot:
         rank_encoding_arr_numpy = self.encode_ranks(card.rank)
         suit_encoding_arr_numpy = self.encode_suits(card.suit)
         
-        return np.array(move_type_arr_numpy + rank_encoding_arr_numpy + suit_encoding_arr_numpy)
+        return move_type_arr_numpy + rank_encoding_arr_numpy + suit_encoding_arr_numpy
 
     def train(self, replay_memory_filename, epochs=10, batch_size=32):
         # directory where the replay memory is saved
@@ -105,7 +105,7 @@ class TrainBot:
         # Feel free to play with the hyperparameters of the model in file 'ml_bot.py', function 'train_ML_model',
         # under the code of body of the if statement 'if use_neural_network:'
         replay_memory_location = pathlib.Path(replay_memories_directory) / replay_memory_filename
-        model_name: str = "tf_sequential_model"
+        model_name: str = "tf_sequential_model_10k"
         model_dir: str = "src/schnapsen/bots/ML_models"
         model_location = pathlib.Path(model_dir) / model_name
         overwrite: bool = True
@@ -153,6 +153,7 @@ class PlayBot:
         self.model = load_model(model_location)
 
     def get_move(self, perspective: PlayerPerspective, leader_move: Optional[Move]) -> Move:
+        outcomes = []
         state_representation = get_state_feature_vector(perspective)
         # get the leader's move representation, even if it is None
         leader_move_representation = get_move_feature_vector(leader_move)
@@ -162,28 +163,27 @@ class PlayBot:
         my_move_representations: list[list[int]] = []
         for my_move in my_valid_moves:
             my_move_representations.append(get_move_feature_vector(my_move))
-
         action_state_representations: list[list[int]] = []
 
         if perspective.am_i_leader():
             follower_move_representation = get_move_feature_vector(None)
             for my_move_representation in my_move_representations:
                 action_state_representations.append(
-                    state_representation + my_move_representation + follower_move_representation)
+                    (state_representation + my_move_representation + follower_move_representation))
         else:
             for my_move_representation in my_move_representations:
                 action_state_representations.append(
-                    state_representation + leader_move_representation + my_move_representation)
+                    (state_representation + leader_move_representation + my_move_representation))
+        best_score = -np.inf
+        best_move_index = -1
+        for index, move in enumerate(action_state_representations):
+            move_input = np.array([move])
+            score = self.model.predict(move_input)
+            if score > best_score:
+                best_score = score
+                best_move_index = index
 
-        possible_moves = self.model.predict(action_state_representations)
-        highest_value = -1
-
-        for index, value in enumerate(possible_moves):
-            if value > highest_value:
-                highest_value = value
-                best_move = my_valid_moves[index]
-        assert best_move is not None
-        return best_move
+        return my_valid_moves[best_move_index]
 
 def create_replay_memory_dataset(bot1: Bot, bot2: Bot) -> None:
     """Create offline dataset for training a ML bot.
@@ -433,5 +433,41 @@ def get_state_feature_vector(perspective: PlayerPerspective) -> list[int]:
     return state_feature_list
 
 #print (tf.__version__)
-nn_bot = TrainBot()
+#nn_bot = TrainBot()
 #nn_bot.train("random_random_10k_games.txt")
+
+def play_games_and_return_stats(engine: GamePlayEngine, bot1: Bot, bot2: Bot, number_of_games: int) -> int:
+    """
+    Play number_of_games games between bot1 and bot2, using the SchnapsenGamePlayEngine, and return how often bot1 won.
+    Prints progress.
+    """
+    bot1_wins: int = 0
+    lead, follower = bot1, bot2
+    for i in range(1, number_of_games + 1):
+        if i % 2 == 0:
+            # swap bots so both start the same number of times
+            lead, follower = follower, lead
+        winner, _, _ = engine.play_game(lead, follower, random.Random(i))
+        if winner == bot1:
+            bot1_wins += 1
+        if i % 500 == 0:
+            print(f"Progress: {i}/{number_of_games}")
+    return bot1_wins
+
+def try_bot_game() -> None:
+    engine = SchnapsenGamePlayEngine()
+    model_dir: str = 'src/schnapsen/bots/ML_models'
+    model_name: str = '100k_128_simple_model'
+    model_location = pathlib.Path(model_dir) / model_name
+    #bot1: Bot = MLPlayingBot(model_location=model_location)
+    #bot1: Bot = RdeepBot(num_samples=16, depth=4, rand=random.Random())
+    bot1 = PlayBot('src/schnapsen/bots/ML_models/tf_sequential_model_10k.keras')
+    bot2: Bot = RandBot(random.Random(464566))
+    number_of_games: int = 10000
+
+    # play games with altering leader position on first rounds
+    ml_bot_wins_against_random = play_games_and_return_stats(engine=engine, bot1=bot1, bot2=bot2, number_of_games=number_of_games)
+    print(f"The ML bot with name {model_name}, won {ml_bot_wins_against_random} times out of {number_of_games} games played.")
+
+try_bot_game()
+#TrainBot().train('random_random_10k_games.txt')
