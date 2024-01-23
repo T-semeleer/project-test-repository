@@ -466,7 +466,8 @@ def play_games_and_return_stats(engine: GamePlayEngine, bot1: Bot, bot2: Bot, nu
 def try_bot_game() -> None:
     engine = SchnapsenGamePlayEngine()
     model_dir: str = 'src/schnapsen/bots/ML_models'
-    model_name: str = '100k_128_simple_model'
+    # model_name: str = '100k_128_simple_model'
+    model_name: str = "10k, 70perc.keras" # Idk if its just me that gets a pikling error with this
     model_location = pathlib.Path(model_dir) / model_name
     bot1: Bot = MLPlayingBot(model_location=model_location)
     #bot1: Bot = RdeepBot(num_samples=16, depth=4, rand=random.Random())
