@@ -1,7 +1,7 @@
 from schnapsen.game import SchnapsenGamePlayEngine, Move, RegularMove, Marriage, Bot, PlayerPerspective, SchnapsenDeckGenerator, GamePhase, GamePlayEngine
 from ml_bot import MLDataBot, MLPlayingBot
 import tensorflow as tf
-from schnapsen.bots import RandBot
+from schnapsen.bots import RandBot, AlphaBetaBot, RdeepBot
 from keras.optimizers import Adam
 from keras.models import Sequential, load_model
 from keras.layers import Dense, Dropout, Input, BatchNormalization, Activation
@@ -18,15 +18,14 @@ from schnapsen.game import Card, Suit, Rank, Move
 class TrainBot:
     def __init__(self):
         # Initialize the neural network
-        
         self.model = Sequential([
             Input(shape=(173,)),  # I think the input shape should be 173, because of the size of the feature vector
             Dense(128, activation='relu'),
-            Dropout(0.2),
-            BatchNormalization()
+            Dropout(0.35),
+            #BatchNormalization(),
+            Dense(256, activation='relu'),
+            Dropout(0.35),
             Dense(128, activation='relu'),
-            Dropout(0.2),
-            Dense(32, activation='relu'),
             Dense(1, activation='sigmoid')
         ])
        
@@ -110,8 +109,8 @@ class TrainBot:
         # Feel free to play with the hyperparameters of the model in file 'ml_bot.py', function 'train_ML_model',
         # under the code of body of the if statement 'if use_neural_network:'
         replay_memory_location = pathlib.Path(replay_memories_directory) / replay_memory_filename
-        model_name: str = "10k_mixed_metric_accuracy_precision_recall_adamtest"
-        model_dir: str = "src/schnapsen/bots/ML_models"
+        model_name: str = "random_100k_nobatch_0.35_10epochs"
+        model_dir: str = "src/schnapsen/bots/ML_models/rohan_models"
         model_location = pathlib.Path(model_dir) / model_name
         overwrite: bool = True
 
@@ -141,7 +140,7 @@ class TrainBot:
         start = time.time()
         print("Starting training phase...")
         try:
-            self.model.fit(x=data, y=targets, batch_size=32, epochs=6)
+            self.model.fit(x=data, y=targets, batch_size=32, epochs=10)
         except Exception as e:
             print (f'An error occured during training {e}')
         self.model.save(model_location, overwrite=True)
@@ -156,39 +155,41 @@ class PlayBot(Bot):
     def __init__(self, model_location, name: Optional[str] = None):
         super().__init__(name)
         self.model = load_model(model_location)
-        self.model.compile(optimizer=Adam(), loss='binary_crossentropy', metrics=['accuracy', Precision(), Recall()])
-
+        self.minimax_model = AlphaBetaBot()
     def get_move(self, perspective: PlayerPerspective, leader_move: Optional[Move]) -> Move:
-        state_representation = get_state_feature_vector(perspective)
-        # get the leader's move representation, even if it is None
-        leader_move_representation = get_move_feature_vector(leader_move)
-        # get all my valid moves
-        my_valid_moves = perspective.valid_moves()
-        # get the feature representations for all my valid moves
-        my_move_representations: list[list[int]] = []
-        for my_move in my_valid_moves:
-            my_move_representations.append(get_move_feature_vector(my_move))
-        action_state_representations: list[list[int]] = []
-
-        if perspective.am_i_leader():
-            follower_move_representation = get_move_feature_vector(None)
-            for my_move_representation in my_move_representations:
-                action_state_representations.append(
-                    (state_representation + my_move_representation + follower_move_representation))
+        if perspective.get_phase() == GamePhase.TWO:
+            return self.minimax_model.get_move(perspective, leader_move)
         else:
-            for my_move_representation in my_move_representations:
-                action_state_representations.append(
-                    (state_representation + leader_move_representation + my_move_representation))
-        best_score = -np.inf
-        best_move_index = -1
-        for index, move in enumerate(action_state_representations):
-            move_input = np.array([move])
-            score = self.model.predict(move_input)
-            if score > best_score:
-                best_score = score
-                best_move_index = index
+            state_representation = get_state_feature_vector(perspective)
+            # get the leader's move representation, even if it is None
+            leader_move_representation = get_move_feature_vector(leader_move)
+            # get all my valid moves
+            my_valid_moves = perspective.valid_moves()
+            # get the feature representations for all my valid moves
+            my_move_representations: list[list[int]] = []
+            for my_move in my_valid_moves:
+                my_move_representations.append(get_move_feature_vector(my_move))
+            action_state_representations: list[list[int]] = []
 
-        return my_valid_moves[best_move_index]
+            if perspective.am_i_leader():
+                follower_move_representation = get_move_feature_vector(None)
+                for my_move_representation in my_move_representations:
+                    action_state_representations.append(
+                        (state_representation + my_move_representation + follower_move_representation))
+            else:
+                for my_move_representation in my_move_representations:
+                    action_state_representations.append(
+                        (state_representation + leader_move_representation + my_move_representation))
+            best_score = -np.inf
+            best_move_index = -1
+            for index, move in enumerate(action_state_representations):
+                move_input = np.array([move])
+                score = self.model.predict(move_input)
+                if score > best_score:
+                    best_score = score
+                    best_move_index = index
+
+            return my_valid_moves[best_move_index]
 
 def create_replay_memory_dataset(bot1: Bot, bot2: Bot) -> None:
     """Create offline dataset for training a ML bot.
@@ -455,8 +456,8 @@ def play_games_and_return_stats(engine: GamePlayEngine, bot1: Bot, bot2: Bot, nu
         winner, _, _ = engine.play_game(lead, follower, random.Random(i))
         if winner == bot1:
             bot1_wins += 1
-        if i % 10 == 0:
-            print(f"Progress: {i}/{number_of_games}")
+        if i % 25 == 0:
+            print(f"\n\n\nProgress: {i}/{number_of_games}\n\n\n")
     return bot1_wins
 
 def try_bot_game() -> None:
@@ -465,15 +466,16 @@ def try_bot_game() -> None:
     model_name: str = '100k_128_simple_model'
     model_location = pathlib.Path(model_dir) / model_name
     #bot1: Bot = MLPlayingBot(model_location=model_location)
-    #bot1: Bot = RdeepBot(num_samples=16, depth=4, rand=random.Random())
-    bot1 = PlayBot('src/schnapsen/bots/ML_models/10k_mixed_metric_accuracy_precision_recall_adamtest.keras')
-    # bot2: Bot = RandBot(random.Random(464566))
-    bot2: Bot = MLPlayingBot(model_location)
+    bot1 = PlayBot('src/schnapsen/bots/ML_models/rohan_models/random_100k_nobatch_0.35_10epochs.keras')
+    #bot2: Bot = RdeepBot(num_samples=16, depth=4, rand=random.Random())
+    bot2: Bot = RandBot(random.Random(464566))
+    #bot2: Bot = PlayBot('src/schnapsen/bots/ML_models/rohan_models/10k_test_dataset.keras')
+    #bot2: Bot = MLPlayingBot(model_location)
     number_of_games: int = 100
 
     # play games with altering leader position on first rounds
     ml_bot_wins_against_random = play_games_and_return_stats(engine=engine, bot1=bot1, bot2=bot2, number_of_games=number_of_games)
     print(f"The ML bot with name {model_name}, won {ml_bot_wins_against_random} times out of {number_of_games} games played.")
 
-#try_bot_game()
-TrainBot().train('test_replay_memory')
+try_bot_game()
+#TrainBot().train('random_random_100k_games.txt')
