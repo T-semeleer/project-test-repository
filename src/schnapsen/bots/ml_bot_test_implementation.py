@@ -2,8 +2,10 @@ from schnapsen.game import SchnapsenGamePlayEngine, Move, RegularMove, Marriage,
 from ml_bot import MLDataBot, MLPlayingBot
 import tensorflow as tf
 from schnapsen.bots import RandBot
+from keras.optimizers import Adam
 from keras.models import Sequential, load_model
 from keras.layers import Dense, Dropout, Input
+from keras.metrics import Precision, Recall
 import numpy as np
 from random import Random
 import random
@@ -17,15 +19,15 @@ class TrainBot:
     def __init__(self):
         # Initialize the neural network
         self.model = Sequential([
-            Input(shape=(173,)),  # I think the input shape should be 120, because of the size of the feature vector
+            Input(shape=(173,)),  # I think the input shape should be 173, because of the size of the feature vector
             Dense(128, activation='relu'),
             Dropout(0.5),
             Dense(128, activation='relu'),
             Dropout(0.5),
-            Dense(128, activation='relu'),
+            Dense(32, activation='relu'),
             Dense(1, activation='sigmoid')
         ])
-        self.model.compile(optimizer='adam', loss='binary_crossentropy', metrics=['accuracy'])
+        self.model.compile(optimizer=Adam(), loss='binary_crossentropy', metrics=['accuracy', Precision(), Recall()])
     def encode_suits(self, card_suit: Card) -> list[int]:
         """One-hot encodes the value of the suits"""
         card_suit_one_hot: list[int]
@@ -105,7 +107,7 @@ class TrainBot:
         # Feel free to play with the hyperparameters of the model in file 'ml_bot.py', function 'train_ML_model',
         # under the code of body of the if statement 'if use_neural_network:'
         replay_memory_location = pathlib.Path(replay_memories_directory) / replay_memory_filename
-        model_name: str = "tf_sequential_model_10k"
+        model_name: str = "tf_sequential_model_100k_metric_accuracy_precision_recall"
         model_dir: str = "src/schnapsen/bots/ML_models"
         model_location = pathlib.Path(model_dir) / model_name
         overwrite: bool = True
@@ -137,7 +139,6 @@ class TrainBot:
         print("Starting training phase...")
         try:
             self.model.fit(x=data, y=targets, batch_size=32, epochs=6)
-            print ('hi\nhi')
         except Exception as e:
             print (f'An error occured during training {e}')
         self.model.save(model_location, overwrite=True)
@@ -145,15 +146,15 @@ class TrainBot:
         end = time.time()
         print('The model was trained in ', (end - start) / 60, 'minutes.')
 
-class PlayBot:
+class PlayBot(Bot):
     '''
     Loads the trained model and plays moves
     '''
     def __init__(self, model_location, name: Optional[str] = None):
+        super().__init__(name)
         self.model = load_model(model_location)
 
     def get_move(self, perspective: PlayerPerspective, leader_move: Optional[Move]) -> Move:
-        outcomes = []
         state_representation = get_state_feature_vector(perspective)
         # get the leader's move representation, even if it is None
         leader_move_representation = get_move_feature_vector(leader_move)
@@ -461,13 +462,13 @@ def try_bot_game() -> None:
     model_location = pathlib.Path(model_dir) / model_name
     #bot1: Bot = MLPlayingBot(model_location=model_location)
     #bot1: Bot = RdeepBot(num_samples=16, depth=4, rand=random.Random())
-    bot1 = PlayBot('src/schnapsen/bots/ML_models/tf_sequential_model_10k.keras')
+    bot1 = PlayBot('src/schnapsen/bots/ML_models/tf_sequential_model_100k_metric_accuracy_precision_recall.keras')
     bot2: Bot = RandBot(random.Random(464566))
-    number_of_games: int = 10000
+    number_of_games: int = 100
 
     # play games with altering leader position on first rounds
     ml_bot_wins_against_random = play_games_and_return_stats(engine=engine, bot1=bot1, bot2=bot2, number_of_games=number_of_games)
     print(f"The ML bot with name {model_name}, won {ml_bot_wins_against_random} times out of {number_of_games} games played.")
 
 try_bot_game()
-#TrainBot().train('random_random_10k_games.txt')
+#TrainBot().train('random_random_100k_games.txt')
