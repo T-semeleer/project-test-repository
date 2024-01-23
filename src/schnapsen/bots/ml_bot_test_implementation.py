@@ -23,7 +23,7 @@ class TrainBot:
             Input(shape=(173,)),  # I think the input shape should be 173, because of the size of the feature vector
             Dense(128, activation='relu'),
             Dropout(0.2),
-            BatchNormalization()
+            BatchNormalization(),
             Dense(128, activation='relu'),
             Dropout(0.2),
             Dense(32, activation='relu'),
