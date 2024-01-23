@@ -3,25 +3,22 @@ from schnapsen.game import Bot, BotState, GamePlayEngine, GameState, Hand, Playe
 from schnapsen.bots import RdeepBot
 from typing import Optional, cast, Literal
 from schnapsen.deck import CardCollection, Suit, Rank, Card
-from sklearn.neural_network import MLPClassifier
-from sklearn.linear_model import LogisticRegression
 import joblib
 import time
 import pathlib
 import random
 import numpy as np
 import tensorflow as tf
-from tensorflow.python.keras import layers, models
-from tensorflow.python.keras.models import load_model, Sequential
-
+from keras.models import load_model, Sequential
+from keras.layers import Dense, Dropout, Input
 class DQN(tf.keras.Model):
     """Deep Q-Network, a neural network model for estimating Q-values of actions."""
     def __init__(self, action_size: int):
         """Initialises the network, with a specified number of layers and constructs the class"""
         super(DQN, self).__init__() # Calling the constructor of the tf.keras.Model class
-        self.dense1 = layers.Dense(128, activation='relu')
-        self.dense2 = layers.Dense(128, activation='relu')
-        self.output_layer = layers.Dense(action_size, activation='linear')
+        self.dense1 = Dense(128, activation='relu')
+        self.dense2 = Dense(128, activation='relu')
+        self.output_layer = Dense(action_size, activation='linear')
     def call(self, state: np.ndarray):
         """Performs a forward pass."""
         x = self.dense1(state)
