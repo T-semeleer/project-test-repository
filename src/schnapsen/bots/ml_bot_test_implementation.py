@@ -154,6 +154,7 @@ class PlayBot(Bot):
     '''
     def __init__(self, model_location, name: Optional[str] = None):
         super().__init__(name)
+
         self.model = load_model(model_location)
         self.minimax_model = AlphaBetaBot()
     def get_move(self, perspective: PlayerPerspective, leader_move: Optional[Move]) -> Move:
@@ -463,7 +464,8 @@ def play_games_and_return_stats(engine: GamePlayEngine, bot1: Bot, bot2: Bot, nu
 def try_bot_game() -> None:
     engine = SchnapsenGamePlayEngine()
     model_dir: str = 'src/schnapsen/bots/ML_models'
-    model_name: str = '100k_128_simple_model'
+    # model_name: str = '100k_128_simple_model'
+    model_name: str = "10k, 70perc.keras" # Idk if its just me that gets a pikling error with this
     model_location = pathlib.Path(model_dir) / model_name
     #bot1: Bot = MLPlayingBot(model_location=model_location)
     bot1 = PlayBot('src/schnapsen/bots/ML_models/rohan_models/random_100k_nobatch_0.35_10epochs.keras')
@@ -478,4 +480,4 @@ def try_bot_game() -> None:
     print(f"The ML bot with name {model_name}, won {ml_bot_wins_against_random} times out of {number_of_games} games played.")
 
 try_bot_game()
-#TrainBot().train('random_random_100k_games.txt')
+# TrainBot().train('test_replay_memory')
