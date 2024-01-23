@@ -4,7 +4,7 @@ import tensorflow as tf
 from schnapsen.bots import RandBot
 from keras.optimizers import Adam
 from keras.models import Sequential, load_model
-from keras.layers import Dense, Dropout, Input
+from keras.layers import Dense, Dropout, Input, BatchNormalization, Activation
 from keras.metrics import Precision, Recall
 import numpy as np
 from random import Random
@@ -18,6 +18,7 @@ from schnapsen.game import Card, Suit, Rank, Move
 class TrainBot:
     def __init__(self):
         # Initialize the neural network
+        '''
         self.model = Sequential([
             Input(shape=(173,)),  # I think the input shape should be 173, because of the size of the feature vector
             Dense(128, activation='relu'),
@@ -27,7 +28,22 @@ class TrainBot:
             Dense(32, activation='relu'),
             Dense(1, activation='sigmoid')
         ])
-        self.model.compile(optimizer=Adam(), loss='binary_crossentropy', metrics=['accuracy', Precision(), Recall()])
+        '''
+        self.model = Sequential()
+        self.model.add(Input(shape=(173,)))
+        self.model.add(Dense(128))
+        self.model.add(BatchNormalization())
+        self.model.add(Activation('relu'))
+        self.model.add(Dropout(0.5))
+
+        self.model.add(Dense(128))
+        self.model.add(BatchNormalization())
+        self.model.add(Activation('relu'))
+        self.model.add(Dropout(0.5))
+
+        # Output layer
+        self.model.add(Dense(1, activation='sigmoid'))
+        self.model.compile(optimizer='adam', loss='binary_crossentropy', metrics=['accuracy', Precision(), Recall()])
     def encode_suits(self, card_suit: Card) -> list[int]:
         """One-hot encodes the value of the suits"""
         card_suit_one_hot: list[int]
@@ -107,7 +123,7 @@ class TrainBot:
         # Feel free to play with the hyperparameters of the model in file 'ml_bot.py', function 'train_ML_model',
         # under the code of body of the if statement 'if use_neural_network:'
         replay_memory_location = pathlib.Path(replay_memories_directory) / replay_memory_filename
-        model_name: str = "tf_sequential_model_100k_metric_accuracy_precision_recall"
+        model_name: str = "tf_sequential_model_10k_metric_accuracy_precision_recall_adamtest"
         model_dir: str = "src/schnapsen/bots/ML_models"
         model_location = pathlib.Path(model_dir) / model_name
         overwrite: bool = True
@@ -153,6 +169,7 @@ class PlayBot(Bot):
     def __init__(self, model_location, name: Optional[str] = None):
         super().__init__(name)
         self.model = load_model(model_location)
+        self.model.compile(optimizer=Adam(), loss='binary_crossentropy', metrics=['accuracy', Precision(), Recall()])
 
     def get_move(self, perspective: PlayerPerspective, leader_move: Optional[Move]) -> Move:
         state_representation = get_state_feature_vector(perspective)
@@ -462,7 +479,7 @@ def try_bot_game() -> None:
     model_location = pathlib.Path(model_dir) / model_name
     #bot1: Bot = MLPlayingBot(model_location=model_location)
     #bot1: Bot = RdeepBot(num_samples=16, depth=4, rand=random.Random())
-    bot1 = PlayBot('src/schnapsen/bots/ML_models/tf_sequential_model_100k_metric_accuracy_precision_recall.keras')
+    bot1 = PlayBot('src/schnapsen/bots/ML_models/tf_sequential_model_10k_metric_accuracy_precision_recall_batch.keras')
     bot2: Bot = RandBot(random.Random(464566))
     number_of_games: int = 100
 
@@ -471,4 +488,4 @@ def try_bot_game() -> None:
     print(f"The ML bot with name {model_name}, won {ml_bot_wins_against_random} times out of {number_of_games} games played.")
 
 try_bot_game()
-#TrainBot().train('random_random_100k_games.txt')
+#TrainBot().train('random_random_10k_games.txt')
