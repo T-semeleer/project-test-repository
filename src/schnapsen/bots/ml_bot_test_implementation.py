@@ -22,9 +22,10 @@ class TrainBot:
         self.model = Sequential([
             Input(shape=(173,)),  # I think the input shape should be 173, because of the size of the feature vector
             Dense(128, activation='relu'),
-            Dropout(0.5),
+            Dropout(0.2),
+            BatchNormalization()
             Dense(128, activation='relu'),
-            Dropout(0.5),
+            Dropout(0.2),
             Dense(32, activation='relu'),
             Dense(1, activation='sigmoid')
         ])
@@ -454,7 +455,7 @@ def play_games_and_return_stats(engine: GamePlayEngine, bot1: Bot, bot2: Bot, nu
         winner, _, _ = engine.play_game(lead, follower, random.Random(i))
         if winner == bot1:
             bot1_wins += 1
-        if i % 500 == 0:
+        if i % 10 == 0:
             print(f"Progress: {i}/{number_of_games}")
     return bot1_wins
 
@@ -466,12 +467,13 @@ def try_bot_game() -> None:
     #bot1: Bot = MLPlayingBot(model_location=model_location)
     #bot1: Bot = RdeepBot(num_samples=16, depth=4, rand=random.Random())
     bot1 = PlayBot('src/schnapsen/bots/ML_models/10k_mixed_metric_accuracy_precision_recall_adamtest.keras')
-    bot2: Bot = RandBot(random.Random(464566))
+    # bot2: Bot = RandBot(random.Random(464566))
+    bot2: Bot = MLPlayingBot(model_location)
     number_of_games: int = 100
 
     # play games with altering leader position on first rounds
     ml_bot_wins_against_random = play_games_and_return_stats(engine=engine, bot1=bot1, bot2=bot2, number_of_games=number_of_games)
     print(f"The ML bot with name {model_name}, won {ml_bot_wins_against_random} times out of {number_of_games} games played.")
 
-try_bot_game()
-#TrainBot().train('test_replay_memory')
+#try_bot_game()
+TrainBot().train('test_replay_memory')
