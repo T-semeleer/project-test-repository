@@ -453,7 +453,7 @@ def play_games_and_return_stats(engine: GamePlayEngine, bot1: Bot, bot2: Bot, nu
         winner, _, _ = engine.play_game(lead, follower, random.Random(i))
         if winner == bot1:
             bot1_wins += 1
-        if i % 25 == 0:
+        if i % 10 == 0:
             print(f"\n\n\nProgress: {i}/{number_of_games}\n\n\n")
     return bot1_wins
 
@@ -462,18 +462,22 @@ def try_bot_game() -> None:
     model_dir: str = 'src/schnapsen/bots/ML_models'
     model_name: str = '100k_128_simple_model'
     #model_name: str = "10k, 70perc.keras" # Idk if its just me that gets a pikling error with this
+    time1 = time.time()
     model_location = pathlib.Path(model_dir) / model_name
     #bot1: Bot = MLPlayingBot(model_location=model_location)
     bot1 = PlayBot('src/schnapsen/bots/ML_models/rohan_models/random_100k_nobatch_0.35_10epochs.keras')
     #bot2: Bot = RdeepBot(num_samples=16, depth=4, rand=random.Random())
-    bot2: Bot = RandBot(random.Random(464566))
-    #bot2: Bot = PlayBot('src/schnapsen/bots/ML_models/rohan_models/10k_test_dataset.keras')
+    #bot2: Bot = RandBot(random.Random(464566))
+    bot2: Bot = PlayBot('src/schnapsen/bots/ML_models/rohan_models/mixed_nobatch_0.35_10epochs.keras')
     #bot2: Bot = MLPlayingBot(model_location)
-    number_of_games: int = 100
+    number_of_games: int = 10
 
     # play games with altering leader position on first rounds
+    time1 = time.time()
     ml_bot_wins_against_random = play_games_and_return_stats(engine=engine, bot1=bot1, bot2=bot2, number_of_games=number_of_games)
+    time2 = time.time()
     print(f"The ML bot with name {model_name}, won {ml_bot_wins_against_random} times out of {number_of_games} games played.")
+    print (f'It took {(time2-time1)/60} minutes to play {number_of_games} games.')
 
 try_bot_game()
 # TrainBot().train('test_replay_memory')
