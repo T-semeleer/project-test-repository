@@ -109,7 +109,7 @@ class TrainBot:
         # Feel free to play with the hyperparameters of the model in file 'ml_bot.py', function 'train_ML_model',
         # under the code of body of the if statement 'if use_neural_network:'
         replay_memory_location = pathlib.Path(replay_memories_directory) / replay_memory_filename
-        model_name: str = "random_100k_nobatch_0.35_10epochs"
+        model_name: str = "full_dataset_nobatch_0.35_10epochs"
         model_dir: str = "src/schnapsen/bots/ML_models/rohan_models"
         model_location = pathlib.Path(model_dir) / model_name
         overwrite: bool = True
@@ -455,11 +455,12 @@ def try_bot_game() -> None:
     time1 = time.time()
     model_location = pathlib.Path(model_dir) / model_name
     #bot1: Bot = MLPlayingBot(model_location=model_location)
-    bot1 = PlayBot('src/schnapsen/bots/ML_models/rohan_models/random_100k_nobatch_0.35_10epochs.keras')
-    bot2: Bot = RdeepBot(num_samples=4, depth=4, rand=random.Random())
+    bot1: Bot = PlayBot('src/schnapsen/bots/ML_models/rohan_models/full_dataset_nobatch_0.35_10epochs.keras')
+    #bot1: Bot = PlayBot('src/schnapsen/bots/ML_models/rohan_models/random_100k_nobatch_0.35_10epochs.keras')
+    #bot2: Bot = RdeepBot(num_samples=4, depth=4, rand=random.Random())
     #bot2: Bot = RandBot(random.Random(464566))
-    #bot2: Bot = PlayBot('src/schnapsen/bots/ML_models/rohan_models/mixed_nobatch_0.35_10epochs.keras')
-    #bot2: Bot = MLPlayingBot(model_location)
+    #bot2: Bot = PlayBot('src/schnapsen/bots/ML_models/rohan_models/random_100k_nobatch_0.35_10epochs.keras')
+    bot2: Bot = MLPlayingBot(model_location)
     number_of_games: int = 100
 
     # play games with altering leader position on first rounds
@@ -469,6 +470,6 @@ def try_bot_game() -> None:
     print(f"The ML bot with name {model_name}, won {ml_bot_wins_against_random} times out of {number_of_games} games played.")
     print (f'It took {(time2-time1)/60} minutes to play {number_of_games} games.')
 
-#try_bot_game()
-# TrainBot().train('test_replay_memory')
-create_replay_memory_dataset()
+try_bot_game()
+#TrainBot().train('full_dataset.txt')
+#create_replay_memory_dataset()
