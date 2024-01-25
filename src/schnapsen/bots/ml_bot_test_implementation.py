@@ -192,26 +192,25 @@ class PlayBot(Bot):
 
             return my_valid_moves[best_move_index]
 
-def create_replay_memory_dataset(bot1: Bot, bot2: Bot) -> None:
-    """Create offline dataset for training a ML bot.
-
-    Args:
-        bot1, bot2: the bot of your choice.
-
-    """
+def create_replay_memory_dataset() -> None:
     # define replay memory database creation parameters
     num_of_games: int = 10000
-    replay_memory_dir: str = "ML_replay_memories"
-    replay_memory_filename: str = "random_random_10k_games.txt"
+    replay_memory_dir: str = 'src/schnapsen/bots/ML_replay_memories'
+    replay_memory_filename: str = 'random100k_mixed_10k_games.txt'
     replay_memory_location = pathlib.Path(replay_memory_dir) / replay_memory_filename
 
+    #bot_1_behaviour: Bot = RandBot(random.Random(5234243))
+    model_location = pathlib.Path('src/schnapsen/bots/ML_models/og_mlbot_10k')
+    #bot_1_behaviour: Bot = MLPlayingBot(model_location)
+    bot_1_behaviour = PlayBot('src/schnapsen/bots/ML_models/rohan_models/random_100k_nobatch_0.35_10epochs.keras')
+    #bot_2_behaviour: Bot = RdeepBot(num_samples=4, depth=4, rand=random.Random(4564654644))
+    bot_2_behaviour: Bot = PlayBot('src/schnapsen/bots/ML_models/rohan_models/mixed_nobatch_0.35.keras')
+    # bot_2_behaviour: Bot = RdeepBot(num_samples=4, depth=4, rand=random.Random(68438))
     delete_existing_older_dataset = False
 
     # check if needed to delete any older versions of the dataset
     if delete_existing_older_dataset and replay_memory_location.exists():
-        print(
-            f"An existing dataset was found at location '{replay_memory_location}', which will be deleted as selected."
-        )
+        print(f"An existing dataset was found at location '{replay_memory_location}', which will be deleted as selected.")
         replay_memory_location.unlink()
 
     # in any case make sure the directory exists
@@ -219,23 +218,14 @@ def create_replay_memory_dataset(bot1: Bot, bot2: Bot) -> None:
 
     # create new replay memory dataset, according to the behaviour of the provided bots and the provided random seed
     engine = SchnapsenGamePlayEngine()
-    replay_memory_recording_bot_1 = MLDataBot(
-        bot1, replay_memory_location=replay_memory_location
-    )
-    replay_memory_recording_bot_2 = MLDataBot(
-        bot2, replay_memory_location=replay_memory_location
-    )
+    replay_memory_recording_bot_1 = MLDataBot(bot_1_behaviour, replay_memory_location=replay_memory_location)
+    replay_memory_recording_bot_2 = MLDataBot(bot_2_behaviour, replay_memory_location=replay_memory_location)
     for i in range(1, num_of_games + 1):
-        if i % 500 == 0:
-            print(f"Progress: {i}/{num_of_games}")
-        engine.play_game(
-            replay_memory_recording_bot_1,
-            replay_memory_recording_bot_2,
-            random.Random(i),
-        )
-    print(
-        f"Replay memory dataset recorder for {num_of_games} games.\nDataset is stored at: {replay_memory_location}"
-    )
+        if i % 50 == 0:
+            print(f"\n\n\nProgress: {i}/{num_of_games}\n\n\n")
+        engine.play_game(replay_memory_recording_bot_1, replay_memory_recording_bot_2, random.Random(i))
+    print(f"Replay memory dataset recorder for {num_of_games} games.\nDataset is stored at: {replay_memory_location}")
+
 def create_state_and_actions_vector_representation(perspective: PlayerPerspective, leader_move: Optional[Move],
                                                    follower_move: Optional[Move]) -> list[int]:
     """
@@ -460,17 +450,17 @@ def play_games_and_return_stats(engine: GamePlayEngine, bot1: Bot, bot2: Bot, nu
 def try_bot_game() -> None:
     engine = SchnapsenGamePlayEngine()
     model_dir: str = 'src/schnapsen/bots/ML_models'
-    model_name: str = '100k_128_simple_model'
+    model_name: str = 'og_mlbot_10k'
     #model_name: str = "10k, 70perc.keras" # Idk if its just me that gets a pikling error with this
     time1 = time.time()
     model_location = pathlib.Path(model_dir) / model_name
     #bot1: Bot = MLPlayingBot(model_location=model_location)
     bot1 = PlayBot('src/schnapsen/bots/ML_models/rohan_models/random_100k_nobatch_0.35_10epochs.keras')
-    #bot2: Bot = RdeepBot(num_samples=16, depth=4, rand=random.Random())
+    bot2: Bot = RdeepBot(num_samples=4, depth=4, rand=random.Random())
     #bot2: Bot = RandBot(random.Random(464566))
-    bot2: Bot = PlayBot('src/schnapsen/bots/ML_models/rohan_models/mixed_nobatch_0.35_10epochs.keras')
+    #bot2: Bot = PlayBot('src/schnapsen/bots/ML_models/rohan_models/mixed_nobatch_0.35_10epochs.keras')
     #bot2: Bot = MLPlayingBot(model_location)
-    number_of_games: int = 10
+    number_of_games: int = 100
 
     # play games with altering leader position on first rounds
     time1 = time.time()
@@ -481,3 +471,4 @@ def try_bot_game() -> None:
 
 try_bot_game()
 # TrainBot().train('test_replay_memory')
+#create_replay_memory_dataset()

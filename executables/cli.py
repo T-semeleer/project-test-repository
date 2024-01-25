@@ -6,7 +6,7 @@ from typing import Optional
 import click
 from schnapsen.alternative_engines.ace_one_engine import AceOneGamePlayEngine
 
-from schnapsen.bots import MLDataBot, train_ML_model, MLPlayingBot, RandBot, PlayBot
+from schnapsen.bots import MLDataBot, train_ML_model, MLPlayingBot, RandBot
 
 from schnapsen.bots.example_bot import ExampleBot
 
@@ -117,14 +117,17 @@ def ml() -> None:
 @ml.command()
 def create_replay_memory_dataset() -> None:
     # define replay memory database creation parameters
-    num_of_games: int = 10000
-    replay_memory_dir: str = 'ML_replay_memories'
-    replay_memory_filename: str = 'random_random_10k_games.txt'
+    num_of_games: int = 50000
+    replay_memory_dir: str = 'src/schnapsen/bots/ML_replay_memories'
+    replay_memory_filename: str = 'random_random_50k_games.txt'
     replay_memory_location = pathlib.Path(replay_memory_dir) / replay_memory_filename
 
-    bot_1_behaviour: Bot = RandBot(random.Random(5234243))
-    # bot_1_behaviour: Bot = RdeepBot(num_samples=4, depth=4, rand=random.Random(4564654644))
-    bot_2_behaviour: Bot = RandBot(random.Random(54354))
+    #bot_1_behaviour: Bot = RandBot(random.Random(5234243))
+    model_location = pathlib.Path('src/schnapsen/bots/ML_models/og_mlbot_10k')
+    #bot_1_behaviour: Bot = MLPlayingBot(model_location)
+    bot_1_behaviour = RandBot(random.Random())
+    #bot_2_behaviour: Bot = RdeepBot(num_samples=4, depth=4, rand=random.Random(4564654644))
+    bot_2_behaviour: Bot = RandBot(random.Random())
     # bot_2_behaviour: Bot = RdeepBot(num_samples=4, depth=4, rand=random.Random(68438))
     delete_existing_older_dataset = False
 
@@ -152,14 +155,14 @@ def train_model() -> None:
     # directory where the replay memory is saved
     replay_memory_filename: str = 'random_random_10k_games.txt'
     # filename of replay memory within that directory
-    replay_memories_directory: str = 'ML_replay_memories'
+    replay_memories_directory: str = 'src/schnapsen/bots/ML_replay_memories'
     # Whether to train a complicated Neural Network model or a simple one.
     # Tips: a neural network usually requires bigger datasets to be trained on, and to play with the parameters of the model.
     # Feel free to play with the hyperparameters of the model in file 'ml_bot.py', function 'train_ML_model',
     # under the code of body of the if statement 'if use_neural_network:'
     replay_memory_location = pathlib.Path(replay_memories_directory) / replay_memory_filename
     model_name: str = 'simple_model'
-    model_dir: str = "ML_models"
+    model_dir: str = "src/schnapsen/bots/ML_models"
     model_location = pathlib.Path(model_dir) / model_name
     overwrite: bool = False
 
@@ -168,7 +171,7 @@ def train_model() -> None:
         model_location.unlink()
 
     train_ML_model(replay_memory_location=replay_memory_location, model_location=model_location,
-                   model_class='LR')
+                   model_class='NN')
 
 
 @ml.command()
@@ -177,9 +180,9 @@ def try_bot_game() -> None:
     model_dir: str = 'ML_models'
     model_name: str = 'simple_model'
     model_location = pathlib.Path(model_dir) / model_name
-    #bot1: Bot = MLPlayingBot(model_location=model_location)
+    bot1: Bot = MLPlayingBot(model_location=model_location)
     #bot1: Bot = RdeepBot(num_samples=16, depth=4, rand=random.Random())
-    bot1 = PlayBot('src/schnapsen/bots/ML_models/tf_sequential_model_10k.keras')
+    #bot1 = PlayBot('src/schnapsen/bots/ML_models/tf_sequential_model_10k.keras')
     bot2: Bot = RandBot(random.Random(464566))
     number_of_games: int = 10000
 
@@ -210,3 +213,4 @@ def game_ace_one() -> None:
 
 if __name__ == "__main__":
     main()
+#create_replay_memory_dataset()
