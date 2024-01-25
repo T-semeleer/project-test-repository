@@ -196,7 +196,7 @@ def create_replay_memory_dataset() -> None:
     # define replay memory database creation parameters
     num_of_games: int = 10000
     replay_memory_dir: str = 'src/schnapsen/bots/ML_replay_memories'
-    replay_memory_filename: str = 'random100k_mixed_10k_games.txt'
+    replay_memory_filename: str = 'random100k_rdeep_10k_games.txt'
     replay_memory_location = pathlib.Path(replay_memory_dir) / replay_memory_filename
 
     #bot_1_behaviour: Bot = RandBot(random.Random(5234243))
@@ -204,8 +204,8 @@ def create_replay_memory_dataset() -> None:
     #bot_1_behaviour: Bot = MLPlayingBot(model_location)
     bot_1_behaviour = PlayBot('src/schnapsen/bots/ML_models/rohan_models/random_100k_nobatch_0.35_10epochs.keras')
     #bot_2_behaviour: Bot = RdeepBot(num_samples=4, depth=4, rand=random.Random(4564654644))
-    bot_2_behaviour: Bot = PlayBot('src/schnapsen/bots/ML_models/rohan_models/mixed_nobatch_0.35.keras')
-    # bot_2_behaviour: Bot = RdeepBot(num_samples=4, depth=4, rand=random.Random(68438))
+    #bot_2_behaviour: Bot = PlayBot('src/schnapsen/bots/ML_models/rohan_models/mixed_nobatch_0.35.keras')
+    bot_2_behaviour: Bot = RdeepBot(num_samples=4, depth=4, rand=random.Random())
     delete_existing_older_dataset = False
 
     # check if needed to delete any older versions of the dataset
@@ -469,6 +469,6 @@ def try_bot_game() -> None:
     print(f"The ML bot with name {model_name}, won {ml_bot_wins_against_random} times out of {number_of_games} games played.")
     print (f'It took {(time2-time1)/60} minutes to play {number_of_games} games.')
 
-try_bot_game()
+#try_bot_game()
 # TrainBot().train('test_replay_memory')
-#create_replay_memory_dataset()
+create_replay_memory_dataset()
