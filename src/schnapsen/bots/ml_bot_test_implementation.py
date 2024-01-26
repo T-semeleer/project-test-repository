@@ -1,11 +1,11 @@
 from schnapsen.game import SchnapsenGamePlayEngine, Move, RegularMove, Marriage, Bot, PlayerPerspective, SchnapsenDeckGenerator, GamePhase, GamePlayEngine
-from ml_bot import MLDataBot, MLPlayingBot
 import tensorflow as tf
-from schnapsen.bots import RandBot, AlphaBetaBot, RdeepBot
+from schnapsen.bots import RandBot, AlphaBetaBot, RdeepBot, MLDataBot, MLPlayingBot
 from keras.optimizers import Adam
 from keras.models import Sequential, load_model
 from keras.layers import Dense, Dropout, Input, BatchNormalization, Activation
 from keras.metrics import Precision, Recall
+from keras.callbacks import EarlyStopping
 import numpy as np
 from random import Random
 import random
@@ -109,8 +109,8 @@ class TrainBot:
         # Feel free to play with the hyperparameters of the model in file 'ml_bot.py', function 'train_ML_model',
         # under the code of body of the if statement 'if use_neural_network:'
         replay_memory_location = pathlib.Path(replay_memories_directory) / replay_memory_filename
-        model_name: str = "full_dataset_nobatch_0.35_10epochs"
-        model_dir: str = "src/schnapsen/bots/ML_models/rohan_models"
+        model_name: str = "loss_0.001_actual_full_datasetv3_nobatch_0.35_10epochs"
+        model_dir: str = "src/schnapsen/bots/ML_models/rohan_models/early_stop"
         model_location = pathlib.Path(model_dir) / model_name
         overwrite: bool = True
 
@@ -137,10 +137,11 @@ class TrainBot:
         print("Samples of losses:", samples_of_losses)
         
         model_location = str(model_location) + '.keras'
+        early_stopping = EarlyStopping(monitor='loss', min_delta=0.001, patience=10, verbose=1, mode='auto', restore_best_weights=True)
         start = time.time()
         print("Starting training phase...")
         try:
-            self.model.fit(x=data, y=targets, batch_size=32, epochs=10)
+            self.model.fit(x=data, y=targets, batch_size=32, epochs=100, callbacks=early_stopping)
         except Exception as e:
             print (f'An error occured during training {e}')
         self.model.save(model_location, overwrite=True)
@@ -196,16 +197,18 @@ def create_replay_memory_dataset() -> None:
     # define replay memory database creation parameters
     num_of_games: int = 10000
     replay_memory_dir: str = 'src/schnapsen/bots/ML_replay_memories'
-    replay_memory_filename: str = 'random100k_rdeep_10k_games.txt'
+    replay_memory_filename: str = 'fullbot_loss0.001_mlbot_10k_games.txt'
     replay_memory_location = pathlib.Path(replay_memory_dir) / replay_memory_filename
 
     #bot_1_behaviour: Bot = RandBot(random.Random(5234243))
     model_location = pathlib.Path('src/schnapsen/bots/ML_models/og_mlbot_10k')
-    #bot_1_behaviour: Bot = MLPlayingBot(model_location)
-    bot_1_behaviour = PlayBot('src/schnapsen/bots/ML_models/rohan_models/random_100k_nobatch_0.35_10epochs.keras')
+    bot_2_behaviour: Bot = MLPlayingBot(model_location)
+    #bot_1_behaviour = PlayBot('src/schnapsen/bots/ML_models/rohan_models/random_100k_nobatch_0.35_10epochs.keras')
+    bot_1_behaviour = PlayBot('src/schnapsen/bots/ML_models/rohan_models/early_stop/loss_0.001_actual_full_datasetv2_nobatch_0.35_10epochs.keras')
     #bot_2_behaviour: Bot = RdeepBot(num_samples=4, depth=4, rand=random.Random(4564654644))
     #bot_2_behaviour: Bot = PlayBot('src/schnapsen/bots/ML_models/rohan_models/mixed_nobatch_0.35.keras')
-    bot_2_behaviour: Bot = RdeepBot(num_samples=4, depth=4, rand=random.Random())
+    #bot_2_behaviour = PlayBot('src/schnapsen/bots/ML_models/rohan_models/actual_full_dataset_nobatch_0.35_10epochs.keras')
+    #bot_2_behaviour: Bot = RdeepBot(num_samples=4, depth=4, rand=random.Random())
     delete_existing_older_dataset = False
 
     # check if needed to delete any older versions of the dataset
@@ -443,7 +446,7 @@ def play_games_and_return_stats(engine: GamePlayEngine, bot1: Bot, bot2: Bot, nu
         winner, _, _ = engine.play_game(lead, follower, random.Random(i))
         if winner == bot1:
             bot1_wins += 1
-        if i % 10 == 0:
+        if i % 25 == 0:
             print(f"\n\n\nProgress: {i}/{number_of_games}\n\n\n")
     return bot1_wins
 
@@ -457,11 +460,11 @@ def try_bot_game() -> None:
     #bot1: Bot = MLPlayingBot(model_location=model_location)
     bot1: Bot = PlayBot('src/schnapsen/bots/ML_models/rohan_models/full_dataset_nobatch_0.35_10epochs.keras')
     #bot1: Bot = PlayBot('src/schnapsen/bots/ML_models/rohan_models/random_100k_nobatch_0.35_10epochs.keras')
-    #bot2: Bot = RdeepBot(num_samples=4, depth=4, rand=random.Random())
+    bot2: Bot = RdeepBot(num_samples=16, depth=4, rand=random.Random(464566))
     #bot2: Bot = RandBot(random.Random(464566))
     #bot2: Bot = PlayBot('src/schnapsen/bots/ML_models/rohan_models/random_100k_nobatch_0.35_10epochs.keras')
-    bot2: Bot = MLPlayingBot(model_location)
-    number_of_games: int = 100
+    #bot2: Bot = MLPlayingBot(model_location)
+    number_of_games: int = 1000
 
     # play games with altering leader position on first rounds
     time1 = time.time()
@@ -470,6 +473,6 @@ def try_bot_game() -> None:
     print(f"The ML bot with name {model_name}, won {ml_bot_wins_against_random} times out of {number_of_games} games played.")
     print (f'It took {(time2-time1)/60} minutes to play {number_of_games} games.')
 
-try_bot_game()
-#TrainBot().train('full_dataset.txt')
-#create_replay_memory_dataset()
+# try_bot_game()
+TrainBot().train('full_dataset.txt')
+# create_replay_memory_dataset()
