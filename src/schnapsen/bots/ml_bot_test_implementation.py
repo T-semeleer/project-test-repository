@@ -109,8 +109,13 @@ class TrainBot:
         # Feel free to play with the hyperparameters of the model in file 'ml_bot.py', function 'train_ML_model',
         # under the code of body of the if statement 'if use_neural_network:'
         replay_memory_location = pathlib.Path(replay_memories_directory) / replay_memory_filename
+<<<<<<< HEAD
         model_name: str = "loss_0.001_actual_full_datasetv3_nobatch_0.35_10epochs"
         model_dir: str = "src/schnapsen/bots/ML_models/rohan_models/early_stop"
+=======
+        model_name: str = "terry_full_dataset_nobatch_0.35_10epochs"
+        model_dir: str = "src/schnapsen/bots/ML_models/terry"
+>>>>>>> deaf0050c9bf0229cb6600bc9656afa5a9863f83
         model_location = pathlib.Path(model_dir) / model_name
         overwrite: bool = True
 
@@ -458,7 +463,7 @@ def try_bot_game() -> None:
     time1 = time.time()
     model_location = pathlib.Path(model_dir) / model_name
     #bot1: Bot = MLPlayingBot(model_location=model_location)
-    bot1: Bot = PlayBot('src/schnapsen/bots/ML_models/rohan_models/full_dataset_nobatch_0.35_10epochs.keras')
+    bot1: Bot = PlayBot(r'src\schnapsen\bots\ML_models\rohan_models\full_dataset_nobatch_0.35_10epochs.keras')
     #bot1: Bot = PlayBot('src/schnapsen/bots/ML_models/rohan_models/random_100k_nobatch_0.35_10epochs.keras')
     bot2: Bot = RdeepBot(num_samples=16, depth=4, rand=random.Random(464566))
     #bot2: Bot = RandBot(random.Random(464566))
