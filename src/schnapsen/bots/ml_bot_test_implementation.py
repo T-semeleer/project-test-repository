@@ -103,19 +103,14 @@ class TrainBot:
     def train(self, replay_memory_filename, epochs=10, batch_size=32):
         # directory where the replay memory is saved
         # filename of replay memory within that directory
-        replay_memories_directory: str = "src/schnapsen/bots/ML_replay_memories"
+        replay_memories_directory: str = "src/schnapsen/bots/ML_replay_memories/Vencel"
         # Whether to train a complicated Neural Network model or a simple one.
         # Tips: a neural network usually requires bigger datasets to be trained on, and to play with the parameters of the model.
         # Feel free to play with the hyperparameters of the model in file 'ml_bot.py', function 'train_ML_model',
         # under the code of body of the if statement 'if use_neural_network:'
         replay_memory_location = pathlib.Path(replay_memories_directory) / replay_memory_filename
-<<<<<<< HEAD
-        model_name: str = "loss_0.001_actual_full_datasetv3_nobatch_0.35_10epochs"
-        model_dir: str = "src/schnapsen/bots/ML_models/rohan_models/early_stop"
-=======
-        model_name: str = "terry_full_dataset_nobatch_0.35_10epochs"
-        model_dir: str = "src/schnapsen/bots/ML_models/terry"
->>>>>>> deaf0050c9bf0229cb6600bc9656afa5a9863f83
+        model_name: str = "basebot"
+        model_dir: str = "src/schnapsen/bots/ML_models/Vencel/"
         model_location = pathlib.Path(model_dir) / model_name
         overwrite: bool = True
 
@@ -201,19 +196,19 @@ class PlayBot(Bot):
 def create_replay_memory_dataset() -> None:
     # define replay memory database creation parameters
     num_of_games: int = 10000
-    replay_memory_dir: str = 'src/schnapsen/bots/ML_replay_memories'
-    replay_memory_filename: str = 'fullbot_loss0.001_mlbot_10k_games.txt'
+    replay_memory_dir: str = 'src/schnapsen/bots/ML_replay_memories/Vencel'
+    replay_memory_filename: str = 'rand_vs_rand_10k.txt'
     replay_memory_location = pathlib.Path(replay_memory_dir) / replay_memory_filename
 
-    #bot_1_behaviour: Bot = RandBot(random.Random(5234243))
+    bot_1_behaviour: Bot = RandBot(random.Random(5234243))
     model_location = pathlib.Path('src/schnapsen/bots/ML_models/og_mlbot_10k')
-    bot_2_behaviour: Bot = MLPlayingBot(model_location)
+    #bot_2_behaviour: Bot = MLPlayingBot(model_location)
     #bot_1_behaviour = PlayBot('src/schnapsen/bots/ML_models/rohan_models/random_100k_nobatch_0.35_10epochs.keras')
-    bot_1_behaviour = PlayBot('src/schnapsen/bots/ML_models/rohan_models/early_stop/loss_0.001_actual_full_datasetv2_nobatch_0.35_10epochs.keras')
+    #bot_1_behaviour = PlayBot('src/schnapsen/bots/ML_models/rohan_models/early_stop/loss_0.001_actual_full_datasetv2_nobatch_0.35_10epochs.keras')
     #bot_2_behaviour: Bot = RdeepBot(num_samples=4, depth=4, rand=random.Random(4564654644))
     #bot_2_behaviour: Bot = PlayBot('src/schnapsen/bots/ML_models/rohan_models/mixed_nobatch_0.35.keras')
     #bot_2_behaviour = PlayBot('src/schnapsen/bots/ML_models/rohan_models/actual_full_dataset_nobatch_0.35_10epochs.keras')
-    #bot_2_behaviour: Bot = RdeepBot(num_samples=4, depth=4, rand=random.Random())
+    bot_2_behaviour: Bot = RandBot(random.Random(4444243))
     delete_existing_older_dataset = False
 
     # check if needed to delete any older versions of the dataset
@@ -479,5 +474,5 @@ def try_bot_game() -> None:
     print (f'It took {(time2-time1)/60} minutes to play {number_of_games} games.')
 
 # try_bot_game()
-TrainBot().train('full_dataset.txt')
-# create_replay_memory_dataset()
+TrainBot().train('rand_vs_rand_10k.txt')
+#create_replay_memory_dataset()
