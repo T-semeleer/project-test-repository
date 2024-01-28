@@ -117,20 +117,20 @@ def ml() -> None:
 @ml.command()
 def create_replay_memory_dataset() -> None:
     # define replay memory database creation parameters
-    num_of_games: int = 20000
-    replay_memory_dir: str = 'src/schnapsen/bots/ML_replay_memories'
-    replay_memory_filename: str = 'rdeep_rdeep_16-4_10k_games.txt'
+    num_of_games: int = 10000
+    replay_memory_dir: str = 'src/schnapsen/bots/Experimental Bot/Datasets/Test Datasets'
+    replay_memory_filename: str = 'selfbot_v2_dataset(EDIT).txt'
     replay_memory_location = pathlib.Path(replay_memory_dir) / replay_memory_filename
 
     #bot_1_behaviour: Bot = RandBot(random.Random(5234243))
     model_location = pathlib.Path('src/schnapsen/bots/ML_models/og_mlbot_10k')
     #bot_1_behaviour: Bot = MLPlayingBot(model_location)
-    #bot_1_behaviour = RandBot(random.Random())
-    #bot_1_behaviour: Bot = PlayBot('src/schnapsen/bots/ML_models/rohan_models/early_stop/loss_0.001_actual_full_datasetv2_nobatch_0.35_10epochs.keras')
+    bot_2_behaviour = RandBot(random.Random(464566))
+    bot_1_behaviour: Bot = PlayBot('src/schnapsen/bots/Experimental Bot/Models/Test Model/selfbot_v1.keras')
     # 4564654644
-    bot_1_behaviour: Bot = RdeepBot(num_samples=16, depth=4, rand=random.Random(464566))
+    #bot_2_behaviour: Bot = RdeepBot(num_samples=16, depth=4, rand=random.Random(464566))
     #bot_2_behaviour: Bot = RandBot(random.Random())
-    bot_2_behaviour: Bot = RdeepBot(num_samples=16, depth=4, rand=random.Random(68438))
+    #bot_2_behaviour: Bot = RdeepBot(num_samples=16, depth=4, rand=random.Random(68438))
     delete_existing_older_dataset = False
 
     # check if needed to delete any older versions of the dataset
@@ -146,8 +146,8 @@ def create_replay_memory_dataset() -> None:
     replay_memory_recording_bot_1 = MLDataBot(bot_1_behaviour, replay_memory_location=replay_memory_location)
     replay_memory_recording_bot_2 = MLDataBot(bot_2_behaviour, replay_memory_location=replay_memory_location)
     for i in range(1, num_of_games + 1):
-        if i % 1000 == 0:
-            print(f"Progress: {i}/{num_of_games}")
+        if i % 50 == 0:
+            print(f"\n\n\nProgress: {i}/{num_of_games}\n\n\n")
         engine.play_game(replay_memory_recording_bot_1, replay_memory_recording_bot_2, random.Random(i))
     print(f"Replay memory dataset recorder for {num_of_games} games.\nDataset is stored at: {replay_memory_location}")
 
@@ -183,9 +183,9 @@ def try_bot_game() -> None:
     model_name: str = 'simple_model'
     model_location = pathlib.Path(model_dir) / model_name
     #bot1: Bot = MLPlayingBot(model_location=model_location)
-    bot2: Bot = RdeepBot(num_samples=16, depth=4, rand=random.Random(464566))
-    bot1 = PlayBot('src/schnapsen/bots/ML_models/rohan_models/actual_full_dataset_nobatch_0.35_10epochs.keras')
-    #bot2: Bot = RandBot(random.Random(464566))
+    #bot2: Bot = RdeepBot(num_samples=16, depth=4, rand=random.Random(464566))
+    bot1: Bot = PlayBot('src/schnapsen/bots/Experimental Bot/Models/Test Model/selfbot_v3.keras')
+    bot2: Bot = RandBot(random.Random(464566))
     #bot2 = PlayBot('src/schnapsen/bots/ML_models/rohan_models/actual_full_datasetv2_nobatch_0.35_10epochs.keras')
     number_of_games: int = 1000
 
@@ -212,7 +212,6 @@ def game_ace_one() -> None:
     for i in range(1000):
         winner_id, game_points, score = engine.play_game(bot1, bot2, random.Random(i))
         print(f"Game ended. Winner is {winner_id} with {game_points} points, score {score}")
-
 
 if __name__ == "__main__":
     main()
